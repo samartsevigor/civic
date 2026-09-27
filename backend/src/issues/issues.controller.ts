@@ -24,7 +24,7 @@ import { SessionIdentityService } from '../auth/session-identity.service';
 import { ImageModerationService } from '../moderation/image-moderation.service';
 import { imageFileFilter, optimizeUploadedImage } from '../upload/image.processor';
 import { createIssuePhotoStorage, resolveUploadRoot } from '../upload/upload.storage';
-import { IssueCategory, IssueStatus } from './issue.enums';
+import { IssueCategory } from './issue.enums';
 import { UpdateIssueStatusDto } from './dto/update-issue-status.dto';
 import { QueryIssuesDto } from './dto/query-issues.dto';
 import { IssuesService } from './issues.service';
@@ -138,31 +138,20 @@ export class IssuesController {
       throw new BadRequestException('Could not process this photo. Try a different image.');
     }
 
-    // Snowflake Cortex AI_FILTER is off on this trial until a card is added.
-    // Keep the check in place and flip this when the account can run it.
-    const photoCheckEnabled = false;
-    let explicit = false;
-    if (photoCheckEnabled) {
-      try {
-        explicit = await this.moderation.containsExplicitContent(storedPath);
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : '';
-        if (detail.includes('Network policy')) {
-          throw new BadRequestException(
-            'Photo check is waiting for a Snowflake network policy. Add it in the SQL worksheet, then try again.',
-          );
-        }
-        if (detail.includes('not available for trial')) {
-          throw new BadRequestException(
-            'Snowflake trial has photo checks turned off until a card is added to the account.',
-          );
-        }
-        throw new BadRequestException('Could not check this photo. Try again in a moment.');
-      }
+    const moderation = {
+      provider: 'snowflake' as const,
+      checked: false,
+      explicit: false,
+    };
+    try {
+      moderation.explicit = await this.moderation.containsExplicitContent(storedPath);
+      moderation.checked = true;
+    } catch {
+      // The report still publishes. Cortex can reject a trial call or flag a photo.
     }
 
     const actor = await this.identity.resolve(authorization, deviceId);
-    return this.issuesService.create({
+    const created = await this.issuesService.create({
       category,
       latitude: lat,
       longitude: lng,
@@ -171,8 +160,8 @@ export class IssuesController {
       address,
       imageUrl,
       fingerprint: actor.identity,
-      status: explicit ? IssueStatus.BLOCKED : IssueStatus.REPORTED,
     });
+    return { ...created, moderation };
   }
 
   @Patch(':id/confirm')

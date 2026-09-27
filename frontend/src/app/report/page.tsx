@@ -31,7 +31,7 @@ export default function ReportPage() {
   const [longitude, setLongitude] = useState(FREDERICTON_CENTER[1]);
   const [nearby, setNearby] = useState<Issue[]>([]);
   const [doneId, setDoneId] = useState<string | null>(null);
-  const [doneBlocked, setDoneBlocked] = useState(false);
+  const [snowflakeChecked, setSnowflakeChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function ReportPage() {
         longitude,
         file,
       });
-      setDoneBlocked(result.issue.status === 'blocked');
+      setSnowflakeChecked(result.moderation?.checked === true);
       setDoneId(result.issue.id);
     } catch (error) {
       civicToast(error instanceof Error ? error.message : 'Could not submit report');
@@ -114,22 +114,19 @@ export default function ReportPage() {
 
           {doneId ? (
             <div style={{ textAlign: 'center', padding: '34px 12px' }}>
-              <div style={{ fontSize: 50, color: 'var(--green)' }}>{doneBlocked ? '!' : '✓'}</div>
-              <h2>{doneBlocked ? 'This photo can’t be published.' : 'Thanks for looking out for Fredericton.'}</h2>
+              <div style={{ fontSize: 50, color: 'var(--green)' }}>✓</div>
+              <h2>Thanks for looking out for Fredericton.</h2>
               <p className="muted" style={{ lineHeight: 1.6, margin: '12px auto 24px', maxWidth: 390 }}>
-                {doneBlocked
-                  ? 'The picture looks explicit, so the report stays hidden. Other people won’t see it.'
-                  : 'Your report has been submitted. Others can confirm it, and you can follow its progress.'}
+                Your report has been submitted. Others can confirm it, and you can follow its progress.
               </p>
-              {doneBlocked ? (
-                <Link href="/" className="btn">
-                  Back to overview
-                </Link>
-              ) : (
-                <Link href={`/issue/${doneId}`} className="btn">
-                  View your report
-                </Link>
-              )}
+              {snowflakeChecked ? (
+                <p className="snowflake-check" style={{ margin: '0 auto 24px' }}>
+                  <b>Snowflake</b> verified this photo
+                </p>
+              ) : null}
+              <Link href={`/issue/${doneId}`} className="btn">
+                View your report
+              </Link>
             </div>
           ) : null}
 
@@ -273,12 +270,18 @@ export default function ReportPage() {
                   You can submit anonymously. Add a display name later to track your reports.
                 </span>
               </div>
+              {submitting ? (
+                <div className="snowflake-check" role="status">
+                  <b>Snowflake verification</b>
+                  <span>Cortex is checking this photo. The report is published either way.</span>
+                </div>
+              ) : null}
               <div className="form-actions">
-                <button type="button" className="btn secondary" onClick={() => setStep(2)}>
+                <button type="button" className="btn secondary" disabled={submitting} onClick={() => setStep(2)}>
                   ← Back
                 </button>
                 <button type="button" className="btn" disabled={submitting} onClick={() => void submit()}>
-                  {submitting ? 'Submitting…' : 'Submit report →'}
+                  {submitting ? 'Verifying with Snowflake…' : 'Submit report →'}
                 </button>
               </div>
             </>

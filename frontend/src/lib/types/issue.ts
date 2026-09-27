@@ -42,6 +42,11 @@ export type StatusFilterKey = 'all' | IssueStatus;
 export interface CreateIssueResponse {
   issue: Issue;
   nearbyIssues: Issue[];
+  moderation?: {
+    provider: 'snowflake';
+    checked: boolean;
+    explicit: boolean;
+  };
 }
 
 export interface IssueStats {
