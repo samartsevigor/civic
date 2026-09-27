@@ -1,5 +1,6 @@
 # CIVIC MVP
 ![Civic Logo](https://i.ibb.co/Sw1mkPHd/photo-2026-09-27-10-27-28.jpg)
+
 Civic problem reporting PWA for Fredericton: public map + report flow + admin panel.
 
 ## Stack
