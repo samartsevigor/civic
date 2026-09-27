@@ -1,0 +1,16 @@
+{
+  "name": "FixMap Fredericton",
+  "short_name": "FixMap",
+  "description": "Report civic issues on the city map",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1F5F9",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
