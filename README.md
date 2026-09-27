@@ -1,4 +1,4 @@
-# FixMap MVP
+# CIVIC MVP
 
 Civic problem reporting PWA for Fredericton: public map + report flow + admin panel.
 
